@@ -167,6 +167,58 @@ pub enum ErrorCode {
 - Cant add dublicate pubkey
 - Only the captain of the team can add a member
 
+We implement Add Member function below the create_team function:
+
+```rust
+pub fn add_member(
+    ctx: Context<AddMember>,
+    _team_name: String,
+    _team_id: u64,
+    member: Pubkey,
+) -> Result<()> {
+    let team = &mut ctx.accounts.team_account;
+
+    // checking if the team already has 5 players if so, return error
+    require!(team.members.len() < 5, ErrorCode::TeamCapacityFullError);
+    // checking if the member is already in the team, if so, return error
+    require!(
+        !team.members.contains(&member),
+        ErrorCode::MemberAlreadyInTeamError
+    );
+    // checkin if the signer is the captain
+    require!(
+        team.captain == *ctx.accounts.signer.key,
+        ErrorCode::NotCaptainError
+    );
+
+    // adding member to the team
+    team.members.push(member);
+
+    Ok(())
+}
+```
+In this function, we pass as Pubkey the member who will be added to the team.
+
+Then we add its instruction to outside of the program macro(pub mod team_dao):
+
+```rust
+#[derive(Accounts)]
+#[instruction(team_name: String, team_id: u64)]
+pub struct AddMember<'info> {
+    #[account(mut, seeds=[team_name.as_bytes(), &team_id.to_ne_bytes()], bump = team_account.bump)]
+    pub team_account: Account<'info, TeamAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+```
+
+In here, in order to understand PDA please read [this essay](https://solanacookbook.com/core-concepts/pdas.html) carefully. And we find a PDA by passing seeds and bump. Seed consist of team_name and team_id. “Seeds” are optional inputs used in the add member function to derive a PDA. Bump provides an additional seed called a "bump seed" to ensure that the result is not on the Ed25519 curve. Additionally you can find more about PDA and bump from [here](https://www.brianfriel.xyz/understanding-program-derived-addresses/)
+
+
+
 
 
 
