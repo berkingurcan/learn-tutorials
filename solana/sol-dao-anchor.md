@@ -161,7 +161,13 @@ pub enum ErrorCode {
 
 <b>Note that: </b> Solana Account can hold on 10MB maximum data. You can learn more from [here](https://solanacookbook.com/core-concepts/accounts.html#facts).
 
-## 
+## Write Add member to team functionality
+
+- A team can only have 5 players max.
+- Cant add dublicate pubkey
+- Only the captain of the team can add a member
+
+
 
 
 
