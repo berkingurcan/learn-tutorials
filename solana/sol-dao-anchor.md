@@ -215,7 +215,66 @@ pub struct AddMember<'info> {
 }
 ```
 
-In here, in order to understand PDA please read [this essay](https://solanacookbook.com/core-concepts/pdas.html) carefully. And we find a PDA by passing seeds and bump. Seed consist of team_name and team_id. “Seeds” are optional inputs used in the add member function to derive a PDA. Bump provides an additional seed called a "bump seed" to ensure that the result is not on the Ed25519 curve. Additionally you can find more about PDA and bump from [here](https://www.brianfriel.xyz/understanding-program-derived-addresses/)
+In here, in order to understand PDA please read [this essay](https://solanacookbook.com/core-concepts/pdas.html) carefully. And we find a PDA by passing seeds and bump. Seed consist of team_name and team_id. “Seeds” are optional inputs used in the add member function to derive a PDA. Bump provides an additional seed called a "bump seed" to ensure that the result is not on the Ed25519 curve. Additionally you can find more about PDA and bump from [here](https://www.brianfriel.xyz/understanding-program-derived-addresses/).
+
+## Create Remove Member Functionality
+
+
+- There must be more than 1 member in the team to remove a member
+- Only the captain of the team can remove a member
+- There must be a member in the team with the given pubkey parameter.
+
+We implement remove_member function after add_member:
+
+```rust
+pub fn remove_member(
+    ctx: Context<RemoveMember>,
+    _team_name: String,
+    _team_id: u64,
+    member: Pubkey,
+) -> Result<()> {
+    let team = &mut ctx.accounts.team_account;
+
+    // checking if the team has at least 2 players if not, return error
+    require!(team.members.len() > 1, ErrorCode::TeamCapacityLowError);
+    // checkinf if the caller is the captain of the team
+    require!(team.captain != member, ErrorCode::NotCaptainError);
+    // checking it the member is in the team
+    require!(
+        team.members.contains(&member),
+        ErrorCode::MemberNotInTeamError
+    );
+
+    // checking if the member is in the team
+    require!(
+        team.members.contains(&member),
+        ErrorCode::MemberNotInTeamError
+    );
+
+    // removing member from team
+    team.members.retain(|&x| x != member);
+
+    Ok(())
+}
+```
+It is almost same as add member function.
+Then add instructions for the function:
+
+```rust
+#[derive(Accounts)]
+#[instruction(team_name: String, team_id: u64)]
+pub struct RemoveMember<'info> {
+    #[account(mut, seeds=[team_name.as_bytes(), &team_id.to_ne_bytes()], bump = team_account.bump)]
+    pub team_account: Account<'info, TeamAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+```
+
+
 
 
 
