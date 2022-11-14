@@ -20,7 +20,7 @@ The TournamentDAO program does not exist on Solana. Participants do not need to 
 
 # Prerequisites
 
-- Beginner/Intermediate understanding of Rust, Solana, Anchor for program and JS/TS for testing.
+- Intermediate understanding of Rust, Solana, Anchor for program and JS/TS for testing.
 - Basic knowledge of PDA and Accounts in Solana
 
 # Requirements
@@ -34,3 +34,23 @@ The TournamentDAO program does not exist on Solana. Participants do not need to 
   </ul>
   
  
+## Init an anchor project
+``` anchor init TeamDAO ```
+
+<b>NOTE: </b>After the initialization is completed. We will write our program and every code in the lib.rs file. 
+
+## Write Create Team Functionality
+
+First we will create Team account struct:
+
+```rust
+#[account]
+pub struct TeamAccount {
+    pub captain: Pubkey,
+    pub bump: u8,
+    pub name: String,
+    pub members: Vec<Pubkey>,
+    pub id: u64,
+}
+```
+
