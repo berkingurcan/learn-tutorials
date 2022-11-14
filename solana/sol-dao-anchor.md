@@ -54,3 +54,84 @@ pub struct TeamAccount {
 }
 ```
 
+After creating Team account we will implement create_team function:
+
+```rust
+#[program]
+pub mod team_dao {
+    use super::*;
+
+    pub fn create_team(ctx: Context<CreateTeam>, team_name: String, team_id: u64) -> Result<()> {
+        let team = &mut ctx.accounts.team_account;
+
+        team.bump = *ctx
+            .bumps
+            .get("team_account")
+            .ok_or(ErrorCode::InvalidBumpSeeds)?;
+
+        // assigning required parameters to the team
+        team.name = team_name;
+        team.captain = *ctx.accounts.signer.key;
+        team.id = team_id;
+        team.members.push(*ctx.accounts.signer.key);
+        team.can_join_tournament = false;
+        team.distribution_voting_result = false;
+
+        msg!("Team created");
+        msg!("Team name: {}", team.name);
+        msg!("Team captain: {}", team.captain);
+
+        Ok(())
+    }
+}
+```
+
+
+After creating create_team function we will handle instructions of create team functionality which will be passed as ctx parameters of create_team function:
+
+```rust
+#[derive(Accounts)]
+#[instruction(_team_name: String, _team_id: u64)]
+pub struct CreateTeam<'info> {
+    #[account(init, payer = signer, space = TeamAccount::LEN, seeds=[_team_name.as_bytes(), &_team_id.to_ne_bytes()], bump)]
+    pub team_account: Account<'info, TeamAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+```
+
+We are initializing team account and assign payer as signer. init, payer and space is compulsory for initializing. For the team creation we are generating
+seed for PDA Account which will be unique because team_id will be unique. 
+
+And for the ``` space = TeamAccount::LEN ```:
+
+We implement constant team account struct:
+
+```rust
+impl TeamAccount {
+    const LEN: usize = 8 // discriminator 
+    + 32 // captain pubkey 
+    + 1 // bump 
+    + 32 // name
+    + 5 * 32 // members vector 
+    + 8 // id
+    + 1 // is_initialized
+    + 1 // yes_votes
+    + 5 * 32 // voted_players vector
+    + 32 // active_tournament
+    + 8 // tournament_prize
+    + 1 // voting_result
+    + 1 * 5 // reward_distribution_percentages vector
+    + 1 // distribution_yes_votes
+    + 5 * 32 // distribution_voted_players vector
+    + 1 // distribution_voting_result
+    + 1; // can_join_tournament   
+} // 612 bytes < 10k
+```
+
+
+
+
