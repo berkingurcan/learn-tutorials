@@ -41,6 +41,8 @@ The TournamentDAO program does not exist on Solana. Participants do not need to 
 
 ## Write Create Team Functionality
 
+Sets the signer as the captain of the team and add the address as a member of the team. 
+
 First we will create Team account struct:
 
 ```rust
@@ -51,6 +53,8 @@ pub struct TeamAccount {
     pub name: String,
     pub members: Vec<Pubkey>,
     pub id: u64,
+    pub distribution_voting_result: bool,
+    pub can_join_tournament: bool,
 }
 ```
 
@@ -76,10 +80,6 @@ pub mod team_dao {
         team.members.push(*ctx.accounts.signer.key);
         team.can_join_tournament = false;
         team.distribution_voting_result = false;
-
-        msg!("Team created");
-        msg!("Team name: {}", team.name);
-        msg!("Team captain: {}", team.captain);
 
         Ok(())
     }
@@ -118,11 +118,12 @@ impl TeamAccount {
     + 32 // name
     + 5 * 32 // members vector 
     + 8 // id 
+    + 1 // distribution_voting_result
+    + 1; // can_join_tournament
 }
 ```
 
 <b>Note that: </b> Solana Account can hold on 10MB maximum data. You can learn more from [here](https://solanacookbook.com/core-concepts/accounts.html#facts).
-
 
 
 
