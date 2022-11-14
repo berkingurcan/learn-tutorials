@@ -117,20 +117,13 @@ impl TeamAccount {
     + 1 // bump 
     + 32 // name
     + 5 * 32 // members vector 
-    + 8 // id
-    + 1 // is_initialized
-    + 1 // yes_votes
-    + 5 * 32 // voted_players vector
-    + 32 // active_tournament
-    + 8 // tournament_prize
-    + 1 // voting_result
-    + 1 * 5 // reward_distribution_percentages vector
-    + 1 // distribution_yes_votes
-    + 5 * 32 // distribution_voted_players vector
-    + 1 // distribution_voting_result
-    + 1; // can_join_tournament   
-} // 612 bytes < 10k
+    + 8 // id 
+}
 ```
+
+<b>Note that: </b> Solana Account can hold on 10MB maximum data. You can learn more from [here](https://solanacookbook.com/core-concepts/accounts.html#facts).
+
+
 
 
 
