@@ -331,7 +331,9 @@ pub struct TransferCaptain<'info> {
 
 Most of the instructions will be similar to these :) but for those who did not understand completely these we will explain again:
 
-```#[derive(Accounts)]```
+```
+#[derive(Accounts)]
+```
 Implements an Accounts deserializer on the given struct, applying any constraints specified via inert #[account(..)] attributes upon deserialization.
 It basically specifies the struct below will be account and handle deserialization of instructions and constraints.
 
