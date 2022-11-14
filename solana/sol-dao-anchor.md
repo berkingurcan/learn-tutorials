@@ -22,6 +22,7 @@ The TournamentDAO program does not exist on Solana. Participants do not need to 
 
 - Intermediate understanding of Rust, Solana, Anchor for program and JS/TS for testing.
 - Basic knowledge of PDA and Accounts in Solana
+- At least one written program with Anchor before.
 
 # Requirements
 
@@ -274,11 +275,85 @@ pub struct RemoveMember<'info> {
 }
 ```
 
+It is also almost same as add member instructions.
+
+## Create Transfer Team Captain Role functionality
+
+- Only the captain of the team can transfer captainship
+- There must be a member with the given pubkey parameter in the team
+
+As you can guess we will add transfer_captain function to inside pub mod team_dao program:
+
+```rust
+pub fn transfer_captain(
+    ctx: Context<TransferCaptain>,
+    _team_name: String,
+    _team_id: u64,
+    member: Pubkey,
+) -> Result<()> {
+    let team = &mut ctx.accounts.team_account;
+
+    // checking if the signer is captain
+    require!(
+        team.captain == *ctx.accounts.signer.key,
+        ErrorCode::NotCaptainError
+    );
+    // checking if the member is in the team
+    require!(
+        team.members.contains(&member),
+        ErrorCode::MemberNotInTeamError
+    );
+
+    // transferring captain role
+    team.captain = member;
+
+    Ok(())
+}
+```
+
+We take member parameter in order to transfer the captainship to a certain member of the team. Randomly assigning the captainship'd be a practice.
+
+Then we add instructions of the function:
+
+```rust
+#[derive(Accounts)]
+#[instruction(team_name: String, team_id: u64)]
+pub struct TransferCaptain<'info> {
+    #[account(mut, seeds=[team_name.as_bytes(), &team_id.to_ne_bytes()], bump = team_account.bump)]
+    pub team_account: Account<'info, TeamAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+```
+
+Most of the instructions will be similar to these :) but for those who did not understand completely these we will explain again:
+
+```#[derive(Accounts)]```
+Implements an Accounts deserializer on the given struct, applying any constraints specified via inert #[account(..)] attributes upon deserialization.
+It basically specifies the struct below will be account and handle deserialization of instructions and constraints.
+
+```
+#[instruction(team_name: String, team_id: u64)]
+```
+During execution, a program will receive a list of account data as one of its arguments, in the same order as specified during Instruction construction.
+It allows the instructions in that account to be passed from the function to here as parameters.
+
+```
+#[account(mut)]
+pub signer: Signer<'info>,
+```
+
+In here, Signer<'info> tells program that this parameter will be the signer of the transaction. Remember that Solana can accept more than 1 signer to its programs. Basically when we call ctx.accounts.signer in the relevant function it will be this parameter.
+
+## Create Leave Team Functionality
 
 
-
-
-
+# References
+https://docs.rs/solana-program/latest/solana_program/instruction/struct.Instruction.html
+https://docs.rs/anchor-derive-accounts/0.4.0/anchor_derive_accounts/derive.Accounts.html
 
 
 
